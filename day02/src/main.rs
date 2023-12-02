@@ -7,8 +7,8 @@ use std::{
 };
 
 lazy_static! {
-    static ref CUBES_IN_BAG: HashMap<&'static str, u32> =
-        HashMap::from([("red", 12), ("green", 13), ("blue", 14)]);
+    static ref CUBES_IN_BAG: Vec<(&'static str, u32)> =
+        vec![("red", 12), ("green", 13), ("blue", 14),];
 }
 
 fn main() {
@@ -27,27 +27,30 @@ fn calc_inputs(inputs: &mut Vec<String>) -> u32 {
 }
 
 fn get_id(line: &mut str) -> u32 {
-    let mut cubes = HashMap::from([("red", 0), ("green", 0), ("blue", 0)]);
-    for cube in cubes.iter_mut() {
-        if let Some(pos) = line.find(cube.0) {
-            if pos > 0 {
-                if let Some(digit) = line.chars().nth(pos - 1) {
-                    *cube.1 += digit.to_digit(10).unwrap();
-                }
-            }
-        }
-    }
-
-    if cubes
+    let (id, line_) = line.split_once(": ").unwrap();
+    let sets: Vec<&str> = line_.split("; ").collect();
+    let cubes: Vec<(u32, &str)> = sets
         .iter()
-        .all(|(color, count)| *count <= *CUBES_IN_BAG.get(color).unwrap_or(&0))
-    {
-        if let Some(mut id_pos) = line.find("Game") {
-            id_pos += 4;
-            if let Some(id) = line.chars().nth(id_pos) {
-                return id as u32;
-            }
-        }
+        .flat_map(|&l| {
+            l.split(';').flat_map(|set| {
+                set.split(',').map(|pair| {
+                    let mut parts = pair.trim().splitn(2, ' ');
+                    let quantity = parts.next().unwrap().parse::<u32>().unwrap();
+                    let color = parts.next().unwrap();
+                    (quantity, color)
+                })
+            })
+        })
+        .collect();
+
+    if cubes.iter().any(|&(quantity, color)| {
+        let matching_color = CUBES_IN_BAG
+            .iter()
+            .find(|&&(bag_color, _)| bag_color == color);
+        matching_color.map_or(false, |&(_, bag_quantity)| quantity > bag_quantity)
+    }) {
+        let id_ = id.get(5..id.len()).unwrap().trim().parse::<u32>().unwrap();
+        return id_;
     }
     0
 }
@@ -55,13 +58,7 @@ fn get_id(line: &mut str) -> u32 {
 fn get_inputs(path: &str) -> Vec<String> {
     let file = File::open(path).expect("Failed to open file");
     let buffer = BufReader::new(file);
-    buffer
-        .lines()
-        .map(move |l| {
-            l.expect("Could not parse line")
-                .replace(char::is_whitespace, "")
-        })
-        .collect()
+    buffer.lines().map(move |l| l.unwrap()).collect()
 }
 
 fn get_args() -> String {
