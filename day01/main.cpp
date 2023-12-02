@@ -76,7 +76,7 @@ static auto seek_for_cvalue_2(const std::string& line) -> int
 static auto run(const std::string& filename, std::string_view option) -> bool
 {
     int result {};
-    auto inputs = read_inputs(filename);
+    const auto inputs = read_inputs(filename);
     if (option == "-p1")
     {
         for (const auto& line : inputs)
@@ -104,11 +104,11 @@ int main(int argc, char* argv[])
 {
     if (argc > 3 || argc < 3)
     {
-        std::cerr << "Invalid amount of args! You can only pass one file and one arg.";
+        std::cerr << "Invalid amount of args! You can only pass one arg and one file.";
         return 1;
     }
-    std::string filename = argv[2];
-    std::string option = argv[1];
+    const auto filename = std::string{argv[2]};
+    const auto option = std::string{argv[1]};
 
     try
     {
