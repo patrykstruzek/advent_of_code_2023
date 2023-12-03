@@ -1,5 +1,4 @@
 use lazy_static::lazy_static;
-use std::collections::HashMap;
 use std::env;
 use std::{
     fs::File,
@@ -8,7 +7,7 @@ use std::{
 
 lazy_static! {
     static ref CUBES_IN_BAG: Vec<(&'static str, u32)> =
-        vec![("red", 12), ("green", 13), ("blue", 14),];
+        vec![("red", 12), ("green", 13), ("blue", 14)];
 }
 
 fn main() {
@@ -20,7 +19,8 @@ fn main() {
 
 fn calc_inputs(inputs: &mut Vec<String>) -> u32 {
     let mut result = 0;
-    for line in inputs.iter_mut() {
+    for (n, line) in inputs.iter_mut().enumerate() {
+        println!("game {}", n + 1);
         result += get_id(line);
     }
     return result;
@@ -29,7 +29,7 @@ fn calc_inputs(inputs: &mut Vec<String>) -> u32 {
 fn get_id(line: &mut str) -> u32 {
     let (id, line_) = line.split_once(": ").unwrap();
     let sets: Vec<&str> = line_.split("; ").collect();
-    let cubes: Vec<(u32, &str)> = sets
+    let cubes: Vec<(&str, u32)> = sets
         .iter()
         .flat_map(|&l| {
             l.split(';').flat_map(|set| {
@@ -37,22 +37,33 @@ fn get_id(line: &mut str) -> u32 {
                     let mut parts = pair.trim().splitn(2, ' ');
                     let quantity = parts.next().unwrap().parse::<u32>().unwrap();
                     let color = parts.next().unwrap();
-                    (quantity, color)
+                    (color, quantity)
                 })
             })
         })
         .collect();
 
-    if cubes.iter().any(|&(quantity, color)| {
-        let matching_color = CUBES_IN_BAG
+    let mut all_correct = true;
+    for (color, value) in cubes.iter() {
+        println!("color {} quantity {}", color, value);
+        if let Some(&bag_value) = CUBES_IN_BAG
             .iter()
-            .find(|&&(bag_color, _)| bag_color == color);
-        matching_color.map_or(false, |&(_, bag_quantity)| quantity > bag_quantity)
-    }) {
-        let id_ = id.get(5..id.len()).unwrap().trim().parse::<u32>().unwrap();
-        return id_;
+            .find(|&&(bag_color, _)| bag_color == *color)
+        {
+            println!("compare {} {}", bag_value.1, value);
+            all_correct &= *value <= bag_value.1;
+        } else {
+            all_correct = false;
+        }
     }
-    0
+
+    if all_correct {
+        let id_ = id.get(5..id.len()).unwrap().trim().parse::<u32>().unwrap();
+        println!("id {}", id_);
+        id_
+    } else {
+        0
+    }
 }
 
 fn get_inputs(path: &str) -> Vec<String> {
