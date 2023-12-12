@@ -1,79 +1,97 @@
-#include <vcruntime.h>
-#include <algorithm>
+#include <array>
+#include <cstddef>
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
-#include <unordered_map>
-#include <utility>
 #include <vector>
 
-static auto read_inputs(const std::string& filename) -> std::vector<std::string>
+using namespace std;
+
+static auto read_inputs(const string& filename) -> vector<string>
 {
-    std::ifstream file {filename};
+    ifstream file {filename};
     if (!file)
     {
-        throw std::runtime_error("File reading failure!");
+        throw runtime_error("File reading failure!");
     }
 
-    std::vector<std::string> inputs {};
-    auto line = std::string {};
-    while (std::getline(file, line))
+    vector<string> inputs {};
+    auto line = string {};
+    while (getline(file, line))
     {
         inputs.push_back(line);
     }
-    return std::move(inputs);
+    return inputs;
 }
 
 // part 1
-static auto seek_for_cvalue_1(const std::string& line) -> int
+static auto get_cvalue1(string_view line) -> int
 {
-    std::vector<char> values {};
-    for (const auto& c : line)
-    {
-        if (std::isdigit(c))
-        {
-            values.push_back(c);
-        }
-    }
-    auto value = std::string {} + values.front() + values.back();
-    return std::stoi(std::move(value));
+    constexpr auto digits = "0123456789";
+    const auto first = line.find_first_of(digits);
+    const auto last = line.find_last_of(digits);
+    return (line[first] - '0') * 10 + (line[last] - '0');
 }
 
 // part 2
-static auto seek_for_cvalue_2(const std::string& line) -> int
+static auto get_cvalue2(string_view line) -> int
 {
-    const std::unordered_map<std::string, char> numbers = {
-        {"one", 1}, {"two", 2},   {"three", 3}, {"four", 4}, {"five", 5},
-        {"six", 6}, {"seven", 7}, {"eight", 8}, {"nine", 9},
-    };
+    int result {};
 
-    auto result = std::pair<int, int> {};
+    constexpr auto digits = "0123456789";
+    constexpr auto strdigits = array<string_view, 10> {"zero", "one", "two",   "three", "four",
+                                                       "five", "six", "seven", "eight", "nine"};
 
-    size_t lborder_distance {};
-    size_t rborder_distance {};
-    for (const auto& [alpha, digit] : numbers)
+    auto first = line.find_first_of(digits);
+
+    size_t index {INTMAX_MAX};
+    size_t number {};
+    for (size_t i = 0; i < strdigits.size(); i++)
     {
-        size_t pos = line.find(alpha);
-        if (pos != std::string::npos && pos < lborder_distance)
+        auto first2 = line.find(strdigits[i]);
+        if (first2 < index && first2 != string::npos)
         {
-            lborder_distance = pos;
-            result.first = digit;
-        }
-
-        pos = line.rfind(alpha);
-        if (pos != std::string::npos && pos > lborder_distance)
-        {
-            rborder_distance = pos;
-            result.second = digit;
+            index = first2;
+            number = i;
         }
     }
 
-    return 10 * result.first + result.second;
+    if (index < first)
+    {
+        result += number * 10;
+    }
+    else
+    {
+        result += (line[first] - '0') * 10;
+    }
+
+    auto last = line.find_last_of(digits);
+
+    index = 0;
+    number = 0;
+    for (std::size_t j = 0; j < strdigits.size(); j++)
+    {
+        auto last2 = line.rfind(strdigits[j]);
+        if (index < last2 && last2 != string::npos)
+        {
+            index = last2;
+            number = j;
+        }
+    }
+
+    if (index > last)
+    {
+        result += number;
+        return result;
+    }
+    result += line[last] - '0';
+    return result;
 }
 
-static auto run(const std::string& filename, std::string_view option) -> bool
+static auto run(const string& filename, string_view option) -> bool
 {
     int result {};
     const auto inputs = read_inputs(filename);
@@ -81,22 +99,22 @@ static auto run(const std::string& filename, std::string_view option) -> bool
     {
         for (const auto& line : inputs)
         {
-            result += seek_for_cvalue_1(line);
+            result += get_cvalue1(line);
         }
     }
     else if (option == "-p2")
     {
         for (const auto& line : inputs)
         {
-            result += seek_for_cvalue_2(line);
+            result += get_cvalue2(line);
         }
     }
     else
     {
-        std::cerr << "Invalid arg!";
+        cerr << "Invalid arg!";
         return false;
     }
-    std::cout << "result: " << result;
+    cout << "result: " << result;
     return true;
 }
 
@@ -104,19 +122,19 @@ int main(int argc, char* argv[])
 {
     if (argc > 3 || argc < 3)
     {
-        std::cerr << "Invalid amount of args! You can only pass one arg and one file.";
+        cerr << "Invalid amount of args! You can only pass one arg and one file.";
         return 1;
     }
-    const auto filename = std::string{argv[2]};
-    const auto option = std::string{argv[1]};
+    const auto filename = string {argv[2]};
+    const auto option = string {argv[1]};
 
     try
     {
         return run(filename, option);
     }
-    catch (const std::exception& e)
+    catch (const exception& e)
     {
-        std::cerr << e.what() << std::endl;
+        cerr << e.what() << endl;
         return 1;
     }
 }
