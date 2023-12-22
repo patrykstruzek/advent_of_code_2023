@@ -1,68 +1,64 @@
-use std::collections::HashMap;
 use std::env;
 use std::fs;
 
 fn main() {
     let (option, path) = get_args();
 
-    let result: u32;
-    match option.as_str() {
-        "-p1" => {
-            result = part1(&read_input(&path));
-        }
-        "-p2" => {
-            result = part2(&read_input(&path));
-        }
-        _ => {
-            panic!("Invalid args!");
-        }
-    }
-    println!("result: {}", { result });
+    let result: u64 = match option.as_str() {
+        "-p1" => part1(&read_input(&path)),
+        "-p2" => part2(&read_input(&path)),
+        _ => panic!("Invalid args!"),
+    };
+
+    println!("result: {}", result);
 }
 
-fn part2(input: &str) -> u32 {
-    0
-}
-
-fn part1(input: &str) -> u32 {
+fn part2(input: &str) -> u64 {
     let results = get_race_results(input);
 
-    let mut result = 1u32;
-    for (time, distance) in results.clone() {
-        result *= ways_of_win(time, distance);
-    }
+    let (time, distance) = results
+        .iter()
+        .map(|(time, distance)| (*time, *distance))
+        .fold((0, 0), |acc, (time, distance)| {
+            (acc.0 * 100 + time, acc.1 * 10000 + distance)
+        });
 
-    result
+    ways_of_win(time, distance)
 }
 
-fn ways_of_win(time: u32, distance: u32) -> u32 {
-    let mut counter = 0u32;
-    for n in 1..time {
-        let race = (time - n) * n;
-        if race > distance {
-            counter += 1;
-        }
-    }
+fn part1(input: &str) -> u64 {
+    let results = get_race_results(input);
 
-    counter
+    results
+        .iter()
+        .map(|&(time, distance)| ways_of_win(time as u64, distance as u64))
+        .product()
 }
 
-fn get_race_results(input: &str) -> HashMap<u32, u32> {
+fn ways_of_win(time: u64, distance: u64) -> u64 {
+    (1..time).filter(|&n| (time - n) * n > distance).count() as u64
+}
+
+fn get_race_results(input: &str) -> Vec<(u64, u64)> {
     let (first_ln, second_ln) = input.split_once('\n').expect("Failure splitting string!");
 
-    let times: Vec<u32> = first_ln
+    let times: Vec<u64> = first_ln
         .split_whitespace()
-        .map(|s| s.parse::<u32>())
+        .map(|s| s.parse())
         .filter_map(Result::ok)
         .collect();
 
-    let distances: Vec<u32> = second_ln
+    let distances: Vec<u64> = second_ln
         .split_whitespace()
-        .map(|s| s.parse::<u32>())
+        .map(|s| s.parse())
         .filter_map(Result::ok)
         .collect();
 
-    let result: HashMap<u32, u32> = times.into_iter().zip(distances.into_iter()).collect();
+    let result: Vec<(u64, u64)> = times
+        .into_iter()
+        .zip(distances.into_iter())
+        .map(|(time, distance)| (u64::from(time), u64::from(distance)))
+        .collect();
 
     result
 }
