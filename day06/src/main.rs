@@ -1,16 +1,17 @@
 use std::env;
 use std::fs;
 
+type option = String;
+type filename = String;
+
 fn main() {
     let (option, path) = get_args();
 
-    let result: u64 = match option.as_str() {
-        "-p1" => part1(&read_input(&path)),
-        "-p2" => part2(&read_input(&path)),
+    match option.as_str() {
+        "-p1" => println!("result: {}", { part1(&read_input(&path)) }),
+        "-p2" => println!("result: {}", { part2(&read_input(&path)) }),
         _ => panic!("Invalid args!"),
     };
-
-    println!("result: {}", result);
 }
 
 fn part2(input: &str) -> u64 {
@@ -67,7 +68,7 @@ fn read_input(path: &str) -> String {
     fs::read_to_string(&path).expect("Failure reading file!")
 }
 
-fn get_args() -> (String, String) {
+fn get_args() -> (option, filename) {
     let args: Vec<String> = env::args().collect();
     if args.len() == 3 {
         return (args[1].clone(), args[2].clone());

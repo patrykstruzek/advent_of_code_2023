@@ -2,12 +2,9 @@
 #include <array>
 #include <fstream>
 #include <iostream>
-#include <ostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <string_view>
-#include <utility>
 #include <vector>
 
 using namespace std;
@@ -24,6 +21,7 @@ static auto read_inputs(const string& filename) -> string {
 
    ostringstream ss{};
    ss << file.rdbuf();
+
    return ss.str();
 }
 
@@ -133,25 +131,26 @@ static auto part1(const string& inputs) -> int {
 }
 
 static auto part2(const string& inputs) -> int {
-   auto [seeds, maps] = parse_alamanac(inputs);
+   // auto [seeds, maps] = parse_alamanac(inputs);
 
-   const auto get_new_seeds = [&seeds]() {
-      auto new_seeds = vector<Seed>{};
-      for (size_t i = 0; i < seeds.size(); i += 2) {
-         for (int j = seeds[i]; j < seeds[i + 1]; j++) {
-            new_seeds.push_back(j);
-         }
-      }
-      return new_seeds;
-   };
+   // const auto get_new_seeds = [&seeds]() {
+   //    auto new_seeds = vector<Seed>{};
+   //    for (size_t i = 0; i < seeds.size(); i += 2) {
+   //       for (int j = seeds[i]; j < seeds[i + 1]; j++) {
+   //          new_seeds.push_back(j);
+   //       }
+   //    }
+   //    return new_seeds;
+   // };
 
-   auto new_seeds = get_new_seeds();
+   // auto new_seeds = get_new_seeds();
 
-   const auto location_values = get_location_numbers(new_seeds, maps);
+   // const auto location_values = get_location_numbers(new_seeds, maps);
 
-   auto smallest = *std::min_element(seeds.begin(), seeds.end());
+   // auto smallest = *std::min_element(seeds.begin(), seeds.end());
 
-   return smallest;
+   // return smallest;
+   return 0;
 }
 
 static auto run(const string& filename, string_view option) {

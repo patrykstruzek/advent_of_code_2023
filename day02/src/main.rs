@@ -6,6 +6,9 @@ use std::{
     io::{prelude::*, BufReader},
 };
 
+type option = String;
+type filename = String;
+
 lazy_static! {
     static ref CUBES_IN_BAG: HashMap<&'static str, u32> =
         HashMap::from([("red", 12), ("green", 13), ("blue", 14)]);
@@ -14,18 +17,11 @@ lazy_static! {
 fn main() {
     let (option, filepath) = get_args();
     let mut inputs = get_inputs(&filepath);
+
     match option.as_str() {
-        "-p1" => {
-            let result = calc_inputs1(&mut inputs);
-            print!("result: {}", { result });
-        }
-        "-p2" => {
-            let result = calc_inputs2(&mut inputs);
-            print!("result: {}", { result });
-        }
-        _ => {
-            panic!("Bad args!");
-        }
+        "-p1" => print!("result: {}", { calc_inputs1(&mut inputs) }),
+        "-p2" => print!("result: {}", { calc_inputs2(&mut inputs) }),
+        _ => panic!("Bad args!"),
     }
 }
 
@@ -34,7 +30,7 @@ fn calc_inputs2(inputs: &mut Vec<String>) -> u32 {
     for line in inputs.iter_mut() {
         result += get_set_power(line);
     }
-    return result;
+    result
 }
 
 fn get_set_power(line: &mut str) -> u32 {
@@ -65,7 +61,7 @@ fn calc_inputs1(inputs: &mut Vec<String>) -> u32 {
     for line in inputs.iter_mut() {
         result += get_id(line);
     }
-    return result;
+    result
 }
 
 fn get_id(line: &mut str) -> u32 {
@@ -79,10 +75,9 @@ fn get_id(line: &mut str) -> u32 {
     }
 
     if all_correct {
-        id
-    } else {
-        0
+        return id;
     }
+    0
 }
 
 fn parse_bag(line: &mut str) -> (u32, Vec<(&str, u32)>) {
@@ -104,16 +99,15 @@ fn parse_bag(line: &mut str) -> (u32, Vec<(&str, u32)>) {
         })
         .collect();
 
-    return (id_, cubes);
+    (id_, cubes)
 }
 
 fn get_inputs(path: &str) -> Vec<String> {
-    let file = File::open(path).expect("Failed to open file");
-    let buffer = BufReader::new(file);
+    let buffer = BufReader::new(File::open(path).expect("Failed to open file"));
     buffer.lines().map(move |l| l.unwrap()).collect()
 }
 
-fn get_args() -> (String, String) {
+fn get_args() -> (option, filename) {
     let args: Vec<String> = env::args().collect();
     if args.len() == 3 {
         return (args[1].clone(), args[2].clone());
